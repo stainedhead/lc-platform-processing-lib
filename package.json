@@ -1,0 +1,39 @@
+{
+  "name": "@stainedhead/lc-platform-processing-lib",
+  "version": "0.1.0",
+  "description": "Processing logic library for Low Code Dev Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun run build:tsc",
+    "build:tsc": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "bun run clean && bun run build",
+    "test": "bun test"
+  },
+  "keywords": [
+    "low-code",
+    "processing",
+    "library",
+    "dev-platform"
+  ],
+  "author": "stainedhead",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stainedhead/lc-platform-processing-lib.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stainedhead/lc-platform-processing-lib/issues"
+  },
+  "homepage": "https://github.com/stainedhead/lc-platform-processing-lib#readme",
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {}
+}
