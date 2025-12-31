@@ -165,3 +165,10 @@ This library is consumed by:
 - Documentation maintenance rules
 - Quality standards and coverage requirements
 - Design decision rationale
+
+## Active Technologies
+- TypeScript 5.9.3 with Bun runtime (not Node.js) + @stainedhead/lc-platform-dev-accelerators (LCPlatform, LCPlatformApp, utilities: configPersistence, dependencyValidator, idGenerator, nameGenerator, policySerializer) (001-platform-config-processing)
+- Cloud-agnostic storage abstraction from lc-platform-dev-accelerators (bucket-based: app.config, appversion.config files) (001-platform-config-processing)
+
+## Recent Changes
+- 001-platform-config-processing: Added TypeScript 5.9.3 with Bun runtime (not Node.js) + @stainedhead/lc-platform-dev-accelerators (LCPlatform, LCPlatformApp, utilities: configPersistence, dependencyValidator, idGenerator, nameGenerator, policySerializer)

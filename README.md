@@ -68,12 +68,190 @@ bun add @stainedhead/lc-platform-processing-lib
 
 ## Usage
 
-> **Note**: This library is currently in v0.1.0 (pre-release). The API is subject to change.
+> **Note**: This library is currently in v0.2.0 (pre-release). The API is subject to change.
+
+### Quick Start
 
 ```typescript
-import { } from '@stainedhead/lc-platform-processing-lib';
+import {
+  LCPlatformAppConfigurator,
+  LCPlatformAppVersionConfigurator,
+  DeployDependencies,
+  DeployApplication,
+  AcceleratorStorageAdapter,
+  AcceleratorPolicyAdapter,
+  AcceleratorDeploymentAdapter,
+} from '@stainedhead/lc-platform-processing-lib';
 
-// Usage examples will be added as domain models are implemented
+// Initialize adapters
+const storage = new AcceleratorStorageAdapter();
+const policy = new AcceleratorPolicyAdapter();
+const deployment = new AcceleratorDeploymentAdapter();
+
+// Create configurators
+const appConfig = new LCPlatformAppConfigurator(storage);
+const versionConfig = new LCPlatformAppVersionConfigurator(storage, policy, deployment);
+```
+
+### Application Management
+
+```typescript
+// Initialize a new application
+const appResult = await appConfig.init({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+  metadata: {
+    description: 'My application',
+    owner: 'platform-team',
+  },
+});
+
+if (appResult.success) {
+  console.log('Application created:', appResult.value.id);
+}
+
+// Read application
+const readResult = await appConfig.read({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+});
+
+// Update application metadata
+const updateResult = await appConfig.update({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+  metadata: {
+    description: 'Updated description',
+  },
+});
+
+// Check if application exists
+const exists = await appConfig.exists({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+});
+```
+
+### Version Management
+
+```typescript
+// Initialize a new version
+const versionResult = await versionConfig.init({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+  versionNumber: '1.0.0',
+  dependencies: [
+    { type: 'database', name: 'postgres', version: '14' },
+    { type: 'queue', name: 'rabbitmq', version: '3.11' },
+  ],
+  metadata: {
+    description: 'Initial release',
+  },
+});
+
+// Cache application artifact
+import { createReadStream } from 'fs';
+
+const stream = createReadStream('./my-app.zip');
+const cacheResult = await versionConfig.cache({
+  identifier: {
+    account: '123456789012',
+    team: 'platform',
+    moniker: 'my-app',
+    version: '1.0.0',
+  },
+  stream,
+  metadata: {
+    contentType: 'application/zip',
+    size: 1024000,
+  },
+});
+
+// Generate IAM policy for application runtime
+const policyResult = await versionConfig.generateAppPolicy({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+  version: '1.0.0',
+});
+
+if (policyResult.success) {
+  console.log('Policy:', JSON.stringify(policyResult.value, null, 2));
+}
+```
+
+### Deployment Management
+
+```typescript
+// Deploy dependencies (with automatic rollback on failure)
+const deployDeps = new DeployDependencies(storage, deployment);
+const depsResult = await deployDeps.execute({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+  version: '1.0.0',
+  environment: 'production',
+  tags: {
+    'custom:cost-center': 'engineering',
+  },
+});
+
+// Deploy application with IAM policies and resource tags
+const deployApp = new DeployApplication(storage, policy, deployment);
+const appDeployResult = await deployApp.execute({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+  version: '1.0.0',
+  environment: 'production',
+  tags: {
+    'custom:owner': 'john-doe',
+  },
+});
+
+if (appDeployResult.success) {
+  console.log('Deployment ID:', appDeployResult.value.deploymentId);
+  console.log('Status:', appDeployResult.value.status);
+  console.log('Applied tags:', appDeployResult.value.appliedTags);
+}
+```
+
+### Error Handling
+
+The library uses Result types for type-safe error handling:
+
+```typescript
+const result = await appConfig.init({
+  account: '123456789012',
+  team: 'platform',
+  moniker: 'my-app',
+  metadata: {},
+});
+
+if (!result.success) {
+  // Handle error
+  switch (result.error) {
+    case ConfigurationError.AlreadyExists:
+      console.error('Application already exists');
+      break;
+    case ConfigurationError.ValidationFailed:
+      console.error('Validation failed');
+      break;
+    case ConfigurationError.NotFound:
+      console.error('Not found');
+      break;
+    default:
+      console.error('Unknown error:', result.error);
+  }
+} else {
+  // Success - use result.value
+  console.log('Application:', result.value);
+}
 ```
 
 ## Development
@@ -196,7 +374,7 @@ This project follows [Semantic Versioning](https://semver.org/):
 - **MINOR**: New features, use cases, domain entities (backward-compatible)
 - **PATCH**: Bug fixes, documentation, internal refactoring
 
-**Current version**: 0.1.0 (pre-1.0.0 - breaking changes allowed in MINOR bumps)
+**Current version**: 0.2.0 (pre-1.0.0 - breaking changes allowed in MINOR bumps)
 
 See [CHANGELOG.md](CHANGELOG.md) for version history.
 
@@ -240,17 +418,40 @@ MIT © [stainedhead](https://github.com/stainedhead)
 
 ## Project Status
 
-**Current Phase**: Initial Setup Complete (v0.1.0)
+**Current Phase**: Core Implementation Complete (v0.2.0)
+
+### Completed
 
 - ✅ Constitution v1.0.0 established
 - ✅ Repository structure defined
 - ✅ Development workflow documented
-- ✅ Quality standards established
-- 🚧 Domain entities (in progress)
-- 🚧 Use cases (planned)
-- 🚧 CLI interface (planned)
+- ✅ Quality standards established (ESLint, Prettier, strict TypeScript)
+- ✅ Domain entities (Application, Version, Deployment)
+- ✅ Value objects (AppId, VersionNumber, DeploymentStatus, ResourceTags, etc.)
+- ✅ Application management use cases (CRUD + validation)
+- ✅ Version management use cases (CRUD + artifact caching + policy generation)
+- ✅ Deployment use cases (dependencies + application deployment)
+- ✅ Reference adapters (AcceleratorStorageAdapter, AcceleratorPolicyAdapter, AcceleratorDeploymentAdapter)
+- ✅ Comprehensive test suite (179 tests, 94% function coverage, 93% line coverage)
+- ✅ Public API with JSDoc documentation
+- ✅ README with usage examples
 
-See [CHANGELOG.md](CHANGELOG.md) for detailed progress.
+### Planned
+
+- 📋 CLI interface (using lcp CLI)
+- 📋 Lifecycle management enhancements
+- 📋 Advanced validation features
+- 📋 Performance optimizations
+- 📋 Additional adapter implementations
+
+### Test Coverage
+
+- **Functions**: 94.06%
+- **Lines**: 93.23%
+- **Total tests**: 179 passing
+- **Test types**: Domain, Use Case, Integration, Contract
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ---
 

@@ -1,0 +1,4 @@
+[test]
+# Bun test runner configuration
+coverage = true
+coverageThreshold = 80
